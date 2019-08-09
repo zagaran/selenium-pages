@@ -1,2 +1,2 @@
 # selenium-pages
-Python utils for writing Selenium test suites
+A page based framework for creating Selenium test suites
