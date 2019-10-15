@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 
-from condition import Condition
+from .condition import Condition
 
 
 def _parse_elem(element):
@@ -59,7 +59,8 @@ class Page(object):
 
     It has a wait_for method that calls wait_for with its own driver
     """
-    url = "^about:blank$"
+    url = "about:blank"
+    url_pattern = "^about:blank$"
     name = 'page'
 
     _elements = {
@@ -133,16 +134,11 @@ class Page(object):
 
         Overwrite this function for pages that require a click through to reach
         """
-        url = self.url
-        if url[0] == '^':
-            url = url[1:]
-        if url[-1] == '$':
-            url = url[:-1]
-        self.driver.get(url.replace(r"\.", '.'))
+        self.driver.get(self.get_url())
 
     def get(self):
         """Run navigate_to_page and wait for url to match"""
-        with self.do_then_wait_for(self.url_matches(self.url)):
+        with self.do_then_wait_for(self.url_matches(self.get_url_pattern())):
             self.navigate_to_page()
 
     def close(self):
@@ -153,9 +149,24 @@ class Page(object):
         """Quit the driver. This closes all tabs or windows"""
         self.driver.quit()
 
+    def get_url(self):
+        return self.url
+
+    def get_url_pattern(self):
+        return self.url_pattern
+
     @classmethod
     def extend_url(cls, extension):
-        return cls.url.replace('$', extension + '$')
+        if '?' in cls.url:
+            base, end = cls.url.split('?')
+            end = f'?{end}'
+        elif '#' in cls.url:
+            base, end = cls.url.split('#')
+            end = f'#{end}'
+        else:
+            base = cls.url
+            end = ''
+        return f'{base}{extension}{end}'
 
     @classmethod
     def extend_elements(cls, elements):
